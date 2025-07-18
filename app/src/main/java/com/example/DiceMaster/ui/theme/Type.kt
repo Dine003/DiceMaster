@@ -1,4 +1,4 @@
-package com.example.dicegame.ui.theme
+package com.example.DiceMaster.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
