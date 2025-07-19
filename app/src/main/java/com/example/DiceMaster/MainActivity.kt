@@ -1,12 +1,12 @@
-package com.example.dicegame
+package com.example.DiceMaster
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,29 +15,72 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.dicegame.ui.theme.DiceGameTheme
+import com.example.DiceMaster.ui.theme.DiceGameTheme
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import kotlin.text.Typography
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.dicegame.R
 
+val GameFont = FontFamily(
+    Font(R.font.luckiestguy, FontWeight.Normal)
+)
+val MouldyCheeseFont = FontFamily(
+    Font(R.font.mouldycheese, FontWeight.Normal)
+)
+
+private val DiceGameTypography = Typography(
+    headlineLarge = TextStyle(
+        fontFamily = GameFont,
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Normal,
+        color = Color.White
+    ),
+    titleLarge = TextStyle(
+        fontFamily = GameFont,
+        fontSize = 24.sp,
+        color = Color.White
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = GameFont,
+        fontSize = 16.sp,
+        color = Color.White
+    )
+)
+private val DiceGameColors = lightColorScheme(
+    primary = Color(0xFF2F5249),
+    secondary = Color(0xFF437057),
+    background = Color(0xFF97B067),
+    onPrimary = Color(0xFFEEEEEE),
+    onBackground = Color(0xFFEEEEEE)
+)
+
+// Main game activity
 class MainActivity : ComponentActivity() {
     // Main activity that manages game screens and tracks win counts across games
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DiceGameTheme {
+            MaterialTheme(colorScheme = DiceGameColors) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // Track current screen and scores
                     var currentScreen by remember { mutableStateOf(Screen.Menu) }
                     var targetScore by remember { mutableStateOf(101) }
                     var humanWins by remember { mutableStateOf(0) }
                     var computerWins by remember { mutableStateOf(0) }
-                    
+                    // Screen navigation
                     when (currentScreen) {
                         Screen.Menu -> MainScreen(
                             onNewGameClick = { currentScreen = Screen.SetupGame }
@@ -66,13 +109,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Enum to manage different screens in the game
+// Game screens
 enum class Screen {
     Menu,      // Initial screen with New Game and About buttons
     SetupGame, // Screen to set target score
     Game       // Main game screen
 }
 
+// Initial screen with New Game and About buttons
 @Composable
 fun MainScreen(onNewGameClick: () -> Unit) {
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -91,43 +135,39 @@ fun MainScreen(onNewGameClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Game Logo
+            // Dices as Logo
             Row(
                 modifier = Modifier
                     .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Display 3 dice as logo
-                DiceImage(
-                    value = 6,
-                    modifier = Modifier.size(64.dp),
-                    rotationDegrees = -15f
-                )
-                DiceImage(
-                    value = 1,
-                    modifier = Modifier.size(72.dp)
-                )
-                DiceImage(
-                    value = 5,
-                    modifier = Modifier.size(64.dp),
-                    rotationDegrees = 15f
+                Image(
+                    painter = painterResource(R.drawable.dicelogo),
+                    contentDescription = "Dice Logo",
+                    modifier = Modifier.size(150.dp)
                 )
             }
 
             // Game Title
             Text(
-                text = "Dice Game",
-                style = MaterialTheme.typography.headlineLarge,
+                text = "Dice Master",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontSize = 42.sp
+                ),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontFamily = GameFont,
+                modifier = Modifier.padding(top = 14.dp)
             )
-            
+
             Text(
-                text = "Test your luck!",
-                style = MaterialTheme.typography.titleMedium,
+                text = "Let's Play!",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 24.sp
+                ),
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
+
         }
 
         // Buttons Section
@@ -150,7 +190,7 @@ fun MainScreen(onNewGameClick: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-            
+
             OutlinedButton(
                 onClick = { showAboutDialog = true },
                 modifier = Modifier
@@ -192,23 +232,23 @@ fun GameScreen(
     var gameState by remember { mutableStateOf(GameState.Playing) }
     var isTieBreaker by remember { mutableStateOf(false) }
     var showInstructions by remember { mutableStateOf(false) }
-    
+
     // Add state for computer's selected dice
     var computerSelectedDice by remember { mutableStateOf(List(5) { false }) }
-    
+
     // Add state for win dialog
     var showWinDialog by remember { mutableStateOf(false) }
-    
+
     // Add state to track reroll count separately from roll count
     var rerollsRemaining by remember { mutableStateOf(2) }
-    
+
     // Add state for tie-breaker scores
     var tieBreakerHumanScore by remember { mutableStateOf(0) }
     var tieBreakerComputerScore by remember { mutableStateOf(0) }
-    
+
     // Function to calculate score from dice
     fun calculateScore(dice: List<Int>) = dice.sum()
-    
+
     // Function to check win condition
     fun checkWinCondition() {
         if (humanTotalScore >= targetScore || computerTotalScore >= targetScore) {
@@ -218,14 +258,14 @@ fun GameScreen(
                 humanDice = List(5) { 1 }
                 computerDice = List(5) { 1 }
             } else {
-                gameState = if (humanTotalScore > computerTotalScore) 
+                gameState = if (humanTotalScore > computerTotalScore)
                     GameState.HumanWon else GameState.ComputerWon
                 showWinDialog = true
                 onGameEnd(gameState == GameState.HumanWon)
             }
         }
     }
-    
+
     // Function to handle computer's random strategy
     fun computerPlay(remainingRolls: Int) {
         var rolls = remainingRolls
@@ -240,14 +280,14 @@ fun GameScreen(
             rolls--
         }
     }
-    
+
     // Update handleScoring to include computer's strategy
     fun handleScoring() {
         // If human scores early, let computer use remaining rolls
         if (rerollsRemaining > 0) {
             computerPlay(rerollsRemaining)
         }
-        
+
         humanTotalScore += calculateScore(humanDice)
         computerTotalScore += calculateScore(computerDice)
         attempts++
@@ -255,32 +295,32 @@ fun GameScreen(
         rerollsRemaining = 2  // Reset rerolls for next turn
         selectedDice = List(5) { false }
         computerSelectedDice = List(5) { false }
-        
+
         if (!isTieBreaker) {
             checkWinCondition()
         } else {
             gameState = if (calculateScore(humanDice) > calculateScore(computerDice))
                 GameState.HumanWon else GameState.ComputerWon
         }
-        
+
         // Reset dice for next turn if game continues
         if (gameState == GameState.Playing) {
             humanDice = List(5) { 1 }
             computerDice = List(5) { 1 }
         }
     }
-    
+
     // Update handleScoring for tie breaker
     fun handleTieBreakerScoring() {
         tieBreakerHumanScore = calculateScore(humanDice)
         tieBreakerComputerScore = calculateScore(computerDice)
-        
+
         gameState = if (tieBreakerHumanScore > tieBreakerComputerScore)
             GameState.HumanWon else GameState.ComputerWon
         showWinDialog = true
         onGameEnd(gameState == GameState.HumanWon)
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -300,22 +340,28 @@ fun GameScreen(
                     .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = "You: $humanTotalScore",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = Color(0xFF0A400C)
+                        )
+                    )
+                    Text(
+                        text = "Computer: $computerTotalScore",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = Color(0xFFC62828)
+                        )
+
+                    )
+                }
                 Text(
-                    text = "H:$humanWins/C:$computerWins",
+                    text = " 🏆H:$humanWins/C:$computerWins🏆",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-                
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Your Score: $humanTotalScore",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "Computer Score: $computerTotalScore",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+
+
             }
         }
 
@@ -339,7 +385,10 @@ fun GameScreen(
         ) {
             Text(
                 text = "Your Dice${if (isTieBreaker) " (Tie Breaker)" else ""}",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = MouldyCheeseFont,
+                    fontWeight = FontWeight.Bold
+                ),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Row(
@@ -375,7 +424,10 @@ fun GameScreen(
         ) {
             Text(
                 text = "Computer's Dice",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = MouldyCheeseFont,
+                    fontWeight = FontWeight.Bold
+                ),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Row(
@@ -428,7 +480,7 @@ fun GameScreen(
                                 humanDice = humanDice.mapIndexed { index, value ->
                                     if (!selectedDice[index]) (1..6).random() else value
                                 }
-                                
+
                                 // Handle computer's reroll decision
                                 if (Math.random() > 0.3) { // 70% chance to reroll
                                     computerSelectedDice = List(5) { Math.random() > 0.5 }
@@ -436,9 +488,9 @@ fun GameScreen(
                                         if (!computerSelectedDice[index]) (1..6).random() else value
                                     }
                                 }
-                                
+
                                 rerollsRemaining--
-                                
+
                                 // Auto-score if no rerolls remaining
                                 if (rerollsRemaining == 0) {
                                     handleScoring()
@@ -446,7 +498,7 @@ fun GameScreen(
                             }
                         }
                     },
-                    enabled = gameState == GameState.Playing && 
+                    enabled = gameState == GameState.Playing &&
                              (isTieBreaker || rollCount == 0 || rerollsRemaining > 0),
                     modifier = Modifier.width(150.dp)
                 ) {
@@ -460,10 +512,10 @@ fun GameScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-                
+
                 Button(
                     onClick = { handleScoring() },
-                    enabled = gameState == GameState.Playing && 
+                    enabled = gameState == GameState.Playing &&
                              rollCount > 0 && rerollsRemaining > 0 && !isTieBreaker,
                     modifier = Modifier.width(100.dp)
                 ) {
@@ -493,7 +545,9 @@ fun GameScreen(
                             GameState.ComputerWon -> "You Lose!"
                             else -> ""
                         },
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontFamily = MouldyCheeseFont
+                        ),
                         color = when (gameState) {
                             GameState.HumanWon -> Color.Green
                             GameState.ComputerWon -> Color.Red
@@ -579,33 +633,35 @@ fun AboutDialog(onDismiss: () -> Unit) {
             ) {
                 // Update title to remove back arrow
                 Text(
-                    text = "About",
-                    style = MaterialTheme.typography.headlineSmall,
+                    text = "About Dice Master",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontFamily = MouldyCheeseFont
+                    ),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 Text(
-                    text = "Student ID: 20232125",
+                    text = "Student ID: 20230948",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
+
                 Text(
-                    text = "Name: Dilshan Manohara",
+                    text = "Name: Tharooshi Dinethma",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
+
                 Text(
-                    text = "I confirm that I understand what plagiarism is and have read and " +
-                            "understood the section on Assessment Offences in the Essential " +
-                            "Information for Students. The work that I have submitted is " +
-                            "entirely my own. Any work from other authors is duly referenced " +
-                            "and acknowledged.",
+                    text = " I confirm that I understand what plagiarism is and have read and\n" +
+                            " understood the section on Assessment Offences in the Essential\n" +
+                            " Information for Students. The work that I have submitted is\n" +
+                            " entirely my own. Any work from other authors is duly referenced\n" +
+                            " and acknowledged.",
                     textAlign = TextAlign.Justify,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
+
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
@@ -625,7 +681,6 @@ fun GameSetupScreen(
 ) {
     var targetScore by remember { mutableStateOf(initialTargetScore.toString()) }
     var showError by remember { mutableStateOf(false) }
-    var showRulesDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -642,13 +697,15 @@ fun GameSetupScreen(
         ) {
             Text(
                 text = "Set Target Score",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontFamily = MouldyCheeseFont,
+                    fontWeight = FontWeight.Bold ),
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
             OutlinedTextField(
                 value = targetScore,
-                onValueChange = { 
+                onValueChange = {
                     targetScore = it
                     showError = false
                 },
@@ -683,69 +740,10 @@ fun GameSetupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { showRulesDialog = true },
-                modifier = Modifier.width(200.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text("Game Rules")
-            }
+    }
         }
     }
 
-    // Rules Dialog
-    if (showRulesDialog) {
-        Dialog(onDismissRequest = { showRulesDialog = false }) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        text = "Game Rules",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-    Text(
-                        text = "• Both players throw 5 dice simultaneously\n\n" +
-                            "• Score is the sum of dice faces\n\n" +
-                            "• Target score is ${targetScore} (can be changed)\n\n" +
-                            "• After each roll, players can:\n" +
-                            "  - Score immediately\n" +
-                            "  - Take up to 2 optional rerolls\n\n" +
-                            "• For rerolls, players can:\n" +
-                            "  - Reroll all dice\n" +
-                            "  - Select dice to keep and reroll others\n\n" +
-                            "• After 3 rolls, score must be taken\n\n" +
-                            "• Game continues until a player reaches ${targetScore}\n\n" +
-                            "• If both reach ${targetScore} in same attempts:\n" +
-                            "  - Higher score wins\n" +
-                            "  - If tied, one final throw decides winner",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Button(
-                        onClick = { showRulesDialog = false },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text("Close")
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -763,7 +761,6 @@ fun GameScreenPreview() {
     }
 }
 
-// REQUIREMENT: DiceImage composable for displaying dice faces
 @Composable
 fun DiceImage(
     value: Int,
@@ -780,10 +777,10 @@ fun DiceImage(
         6 -> R.drawable.dice_6
         else -> R.drawable.dice_1
     }
-    
+
     Surface(
         modifier = modifier.rotate(rotationDegrees),
-        color = if (selected) 
+        color = if (selected)
             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
         else MaterialTheme.colorScheme.surface,
         border = if (selected) BorderStroke(

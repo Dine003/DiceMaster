@@ -13,7 +13,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -30,7 +29,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.1" // Update to "1.5.4" if needed
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -44,12 +43,13 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
-    
+
+    // Compose BOM (Bill of Materials) - Manages versions automatically
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    
+    implementation(libs.androidx.compose.material3) // ← Only keep this one
+
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.DiceGame" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Force background color -->
+        <item name="android:windowBackground">@color/backgroundColor</item>
 
-    <style name="Theme.DiceGame" parent="android:Theme.Material.Light.NoActionBar" />
+        <!-- Force text colors -->
+        <item name="android:textColorPrimary">@color/textColor</item>
+        <item name="android:textColorSecondary">@color/textColor</item>
+    </style>
 </resources>
